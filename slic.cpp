@@ -12,7 +12,6 @@ Slic::Slic() {
  * Destructor. Clear any present data.
  */
 Slic::~Slic() {
-    clear_data();
 }
 
 /*
