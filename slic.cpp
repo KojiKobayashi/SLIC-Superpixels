@@ -66,11 +66,12 @@ void Slic::init_data(const cv::Mat &image) {
  */
 double Slic::compute_dist(int ci, cv::Point pixel, cv::Vec3b colour) {
     Vec5d cen(centers(ci));
-    double dc = sqrt(pow(cen[0] - colour[0], 2) + pow(cen[1]
-            - colour[1], 2) + pow(cen[2] - colour[2], 2));
-    double ds = sqrt(pow(cen[3] - pixel.x, 2) + pow(cen[4] - pixel.y, 2));
+    double dc2 = pow(cen[0] - colour[0], 2)
+               + pow(cen[1] - colour[1], 2)
+               + pow(cen[2] - colour[2], 2);
+    double ds2 = pow(cen[3] - pixel.x, 2) + pow(cen[4] - pixel.y, 2);
     
-    return sqrt(pow(dc / nc, 2) + pow(ds / ns, 2));
+    return sqrt(dc2 * inv_nc2 + ds2 * inv_ns2);
     
     //double w = 1.0 / (pow(ns / nc, 2));
     //return sqrt(dc) + sqrt(ds * w);
@@ -124,6 +125,8 @@ void Slic::generate_superpixels(const cv::Mat &img, int step, int nc) {
     this->step = step;
     this->nc = nc;
     this->ns = step;
+    this->inv_nc2 = 1.0 / ((double)nc*nc);
+    this->inv_ns2 = 1.0 / ((double)ns*ns);
 
     /* make a new Mat header, that allows us to iterate the image more efficiently. */
     cv::Mat_<cv::Vec3b> image(img);

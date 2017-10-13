@@ -41,6 +41,7 @@ class Slic {
         /* The step size per cluster, and the colour (nc) and distance (ns)
          * parameters. */
         int step, nc, ns;
+        double inv_nc2, inv_ns2;
         
         /* Compute the distance between a center and an individual pixel. */
         double compute_dist(int ci, cv::Point pixel, cv::Vec3b colour);
