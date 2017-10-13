@@ -44,7 +44,7 @@ class Slic {
         double inv_nc2, inv_ns2;
         
         /* Compute the distance between a center and an individual pixel. */
-        double compute_dist(int ci, cv::Point pixel, cv::Vec3b colour);
+        double compute_square_dist(int ci, cv::Point pixel, cv::Vec3b colour);
         /* Find the pixel with the lowest gradient in a 3x3 surrounding. */
         cv::Point find_local_minimum(const cv::Mat_<cv::Vec3b> &image, cv::Point center);
         
@@ -68,7 +68,7 @@ class Slic {
         void colour_with_cluster_means(cv::Mat &image);
         /* The cluster assignments and distance values for each pixel. */
         cv::Mat_<int> clusters;
-        cv::Mat_<double> distances;
+        cv::Mat_<double> square_distances;
         
         /* The LAB and xy values of the centers. */
         cv::Mat_<Vec5d> centers;

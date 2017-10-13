@@ -22,7 +22,7 @@ Slic::~Slic() {
  */
 void Slic::clear_data() {
     clusters.release();
-    distances.release();
+    square_distances.release();
     centers.release();
     center_counts.clear();
 }
@@ -38,7 +38,7 @@ void Slic::init_data(const cv::Mat &image) {
     /* Initialize the cluster and distance matrices. */
 
     clusters  = cv::Mat_<int>(image.cols,image.rows,-1);
-    distances = cv::Mat_<double>(image.cols,image.rows,DBL_MAX);
+    square_distances = cv::Mat_<double>(image.cols, image.rows, DBL_MAX);
 
     /* Initialize the centers and counters. */
     for (int i = step; i < image.cols - step/2; i += step) {
@@ -62,19 +62,16 @@ void Slic::init_data(const cv::Mat &image) {
  *
  * Input : The cluster index (int), the pixel (cv::Point), and the Lab values of
  *         the pixel (cv::Scalar).
- * Output: The distance (double).
+ * Output: The square distance (double).
  */
-double Slic::compute_dist(int ci, cv::Point pixel, cv::Vec3b colour) {
-    Vec5d cen(centers(ci));
+double Slic::compute_square_dist(int ci, cv::Point pixel, cv::Vec3b colour) {
+    Vec5d &cen = centers(ci);
     double dc2 = pow(cen[0] - colour[0], 2)
                + pow(cen[1] - colour[1], 2)
                + pow(cen[2] - colour[2], 2);
     double ds2 = pow(cen[3] - pixel.x, 2) + pow(cen[4] - pixel.y, 2);
     
-    return sqrt(dc2 * inv_nc2 + ds2 * inv_ns2);
-    
-    //double w = 1.0 / (pow(ns / nc, 2));
-    //return sqrt(dc) + sqrt(ds * w);
+    return dc2 * inv_nc2 + ds2 * inv_ns2;
 }
 
 /*
@@ -138,7 +135,7 @@ void Slic::generate_superpixels(const cv::Mat &img, int step, int nc) {
     /* Run EM for 10 iterations (as prescribed by the algorithm). */
     for (int i = 0; i < NR_ITERATIONS; i++) {
         /* Reset distance values. */
-        distances = FLT_MAX;
+        square_distances = DBL_MAX;
 
         for (int j = 0; j < centers.rows; j++) {
             Vec5d cen(centers(j));
@@ -147,13 +144,13 @@ void Slic::generate_superpixels(const cv::Mat &img, int step, int nc) {
                 for (int l = int(cen[4]) - step; l < int(cen[4]) + step; l++) {
                 
                     if (k >= 0 && k < image.cols && l >= 0 && l < image.rows) {
-                        cv::Vec3b colour = image(l, k);
-                        double d = compute_dist(j, cv::Point(k,l), colour);
+                        cv::Vec3b &colour = image(l, k);
+                        double d = compute_square_dist(j, cv::Point(k,l), colour);
                         
                         /* Update cluster allocation if the cluster minimizes the
                            distance. */
-                        if (d < distances(k,l)) {
-                            distances(k,l) = d;
+                        if (d < square_distances(k,l)) {
+                            square_distances(k,l) = d;
                             clusters(k,l) = j;
                         }
                     }
